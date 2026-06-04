@@ -6,6 +6,7 @@ type TicketType string
 
 const (
 	TicketRegular TicketType = "regular"
+	TicketStudent TicketType = "student"
 	TicketVIP     TicketType = "vip"
 )
 

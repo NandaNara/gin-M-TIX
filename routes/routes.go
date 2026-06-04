@@ -13,6 +13,13 @@ import (
 func SetupRouter(db *config.Database) *gin.Engine {
 	router := gin.Default()
 
+	router.GET("/", func(c *gin.Context) {
+		c.JSON(200, gin.H{
+			"message": "Welcome to Cinema Ticket Booking API",
+			"status":  "success",
+		})
+	})
+
 	movieRepo := repositories.NewMovieRepository(db)
 	scheduleRepo := repositories.NewScheduleRepository(db)
 	bookingRepo := repositories.NewBookingRepository(db)

@@ -34,10 +34,24 @@ func (VIPTicketFactory) CreateTicket(scheduleID int, seat models.Seat, basePrice
 	}
 }
 
+type StudentTicketFactory struct{}
+
+func (StudentTicketFactory) CreateTicket(scheduleID int, seat models.Seat, basePrice float64) models.Ticket {
+	return models.Ticket{
+		ScheduleID: scheduleID,
+		SeatID:     seat.ID,
+		SeatCode:   seat.Code,
+		Type:       models.TicketStudent,
+		Price:      basePrice * 0.8, // 20% discount for students
+	}
+}
+
 func NewTicketFactory(ticketType models.TicketType) (TicketFactory, error) {
 	switch ticketType {
 	case "", models.TicketRegular:
 		return RegularTicketFactory{}, nil
+	case models.TicketStudent:
+		return StudentTicketFactory{}, nil
 	case models.TicketVIP:
 		return VIPTicketFactory{}, nil
 	default:

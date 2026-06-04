@@ -12,6 +12,12 @@ func NewPricingService() *PricingService {
 }
 
 func (s *PricingService) GetStrategy(schedule models.Schedule) strategy.PricingStrategy {
+	if strategy.IsHoliday(schedule.StartTime) {
+		return strategy.HolidayPricing{}
+	}
+	if strategy.IsMidnight(schedule.StartTime) {
+		return strategy.MidnightPricing{}
+	}
 	if strategy.IsWeekend(schedule.StartTime) {
 		return strategy.WeekendPricing{}
 	}
