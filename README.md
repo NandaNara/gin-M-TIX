@@ -56,7 +56,9 @@ Dengan struktur ini, setiap bagian program punya tanggung jawab yang jelas. Cont
 │   ├── strategy/
 │   │   ├── pricing_strategy.go
 │   │   ├── weekday_pricing.go
-│   │   └── weekend_pricing.go
+│   │   ├── weekend_pricing.go
+│   │   ├── holiday_pricing.go
+│   │   └── midnight_pricing.go
 │   └── facade/
 │       └── booking_facade.go
 └── routes/
@@ -92,8 +94,9 @@ Lokasi: `patterns/factory/ticket_factory.go`
 
 Factory Pattern digunakan untuk membuat tiket berdasarkan jenis tiket. Saat ini tersedia:
 
-- `regular`
-- `vip`
+- `regular` — harga normal.
+- `vip` — harga naik 50%.
+- `student` — diskon 20%.
 
 Kode pemanggil tidak perlu tahu detail pembuatan masing-masing tiket. Cukup memanggil `NewTicketFactory(ticketType)`, lalu factory akan mengembalikan pembuat tiket yang sesuai.
 
@@ -108,16 +111,24 @@ ticket := factory.CreateTicket(schedule.ID, seat, baseSeatPrice)
 
 Lokasi: `patterns/strategy`
 
-Strategy Pattern digunakan untuk menentukan harga berdasarkan hari tayang:
+Strategy Pattern digunakan untuk menentukan harga berdasarkan waktu tayang. `PricingService` memilih strategi berdasarkan `StartTime` dari schedule dengan urutan prioritas:
 
-- `WeekdayPricing`: harga normal.
-- `WeekendPricing`: harga naik 25%.
+1. `HolidayPricing`: harga naik 50% (tanggal 1 Januari dan 25 Desember).
+2. `MidnightPricing`: harga naik 20% (jam 22:00–02:00).
+3. `WeekendPricing`: harga naik 25% (Sabtu dan Minggu).
+4. `WeekdayPricing`: harga normal.
 
-`PricingService` memilih strategi berdasarkan `StartTime` dari schedule. Dengan pattern ini, aturan harga baru bisa ditambahkan tanpa mengubah alur booking utama.
+Dengan pattern ini, aturan harga baru bisa ditambahkan tanpa mengubah alur booking utama.
 
 Contoh:
 
 ```go
+if strategy.IsHoliday(schedule.StartTime) {
+	return strategy.HolidayPricing{}
+}
+if strategy.IsMidnight(schedule.StartTime) {
+	return strategy.MidnightPricing{}
+}
 if strategy.IsWeekend(schedule.StartTime) {
 	return strategy.WeekendPricing{}
 }
