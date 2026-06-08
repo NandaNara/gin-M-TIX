@@ -11,7 +11,7 @@ func main() {
 	db := config.NewDatabase()
 	router := routes.SetupRouter(db)
 
-	if err := router.Run(":8080"); err != nil {
+	if err := router.Run(":8999"); err != nil {
 		log.Fatal(err)
 	}
 }

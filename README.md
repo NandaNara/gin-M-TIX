@@ -179,16 +179,18 @@ Seluruh file frontend berada di dalam direktori `public/`.
 
 ## Cara Menjalankan
 
+### Cara 1: Menjalankan Secara Lokal
+
 Jalankan aplikasi:
 
 ```bash
 go run .
 ```
 
-Server akan berjalan pada berikut namun juga bisa diakses melalui Antarmuka Web (UI) melalui browser di:
+Server akan berjalan pada port berikut dan bisa diakses melalui Antarmuka Web (UI) melalui browser di:
 
 ```text
-http://localhost:8080
+http://localhost:8999
 ```
 *(Root URL otomatis akan mengarahkan Anda ke `/ui/`)*
 
@@ -197,6 +199,23 @@ Jalankan pengecekan compile & testing:
 ```bash
 go test ./...
 ```
+
+### Cara 2: Menjalankan dengan Docker
+
+Proyek ini telah dilengkapi dengan `Dockerfile` dan `docker-compose.yml` sehingga Anda bisa mendeploy-nya dengan mudah dimana saja.
+
+**Menggunakan Docker Compose (Disarankan):**
+```bash
+docker-compose up -d
+```
+
+**Menggunakan Docker CLI Murni:**
+```bash
+docker build -t gin-mtix-app .
+docker run -d -p 8999:8999 --name mtix-app gin-mtix-app
+```
+
+Setelah container berjalan, akses aplikasi melalui browser di `http://localhost:8999`.
 
 ## Contoh Request
 
