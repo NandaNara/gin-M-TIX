@@ -61,6 +61,9 @@ Dengan struktur ini, setiap bagian program punya tanggung jawab yang jelas. Cont
 │   │   └── midnight_pricing.go
 │   └── facade/
 │       └── booking_facade.go
+├── public/
+│   ├── app.js
+│   └── index.html
 └── routes/
     └── routes.go
 ```
@@ -165,6 +168,15 @@ payment, booking, err := ctrl.facade.Pay(request)
 | GET | `/users/:id/bookings` | Melihat booking milik user |
 | POST | `/payments` | Melakukan pembayaran |
 
+## Antarmuka Web (Frontend)
+
+Proyek ini dilengkapi dengan antarmuka web bertema **"Midnight Premiere"** yang mewah dan elegan. Frontend dibangun dengan stack super ringan tanpa *build tools*:
+- **Alpine.js** untuk reaktivitas dan state management.
+- **Tailwind CSS** untuk *styling* antarmuka (Glassmorphism, Dark mode).
+- **Lucide Icons** untuk ikon minimalis.
+
+Seluruh file frontend berada di dalam direktori `public/`.
+
 ## Cara Menjalankan
 
 Jalankan aplikasi:
@@ -173,13 +185,14 @@ Jalankan aplikasi:
 go run .
 ```
 
-Server akan berjalan di:
+Server akan berjalan pada berikut namun juga bisa diakses melalui Antarmuka Web (UI) melalui browser di:
 
 ```text
 http://localhost:8080
 ```
+*(Root URL otomatis akan mengarahkan Anda ke `/ui/`)*
 
-Jalankan pengecekan compile:
+Jalankan pengecekan compile & testing:
 
 ```bash
 go test ./...
