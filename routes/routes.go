@@ -13,11 +13,12 @@ import (
 func SetupRouter(db *config.Database) *gin.Engine {
 	router := gin.Default()
 
+	// Serve static files for frontend
+	router.Static("/ui", "./public")
+
+	// Redirect root to frontend
 	router.GET("/", func(c *gin.Context) {
-		c.JSON(200, gin.H{
-			"message": "Welcome to Cinema Ticket Booking API",
-			"status":  "success",
-		})
+		c.Redirect(302, "/ui/")
 	})
 
 	movieRepo := repositories.NewMovieRepository(db)
