@@ -32,6 +32,10 @@ func (f *BookingFacade) GetUserBookings(userID int) []models.Booking {
 	return f.bookingService.GetUserBookings(userID)
 }
 
+func (f *BookingFacade) CancelBooking(id int) (models.Booking, error) {
+	return f.bookingService.CancelBooking(id)
+}
+
 func (f *BookingFacade) Pay(request services.PaymentRequest) (models.Payment, models.Booking, error) {
 	return f.paymentService.Pay(request)
 }

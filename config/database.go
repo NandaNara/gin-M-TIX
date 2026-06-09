@@ -77,3 +77,27 @@ func (db *Database) seed() {
 	db.Schedules[2] = models.Schedule{ID: 2, MovieID: 2, StudioID: 2, StartTime: now.Add(48 * time.Hour), BasePrice: 75000}
 	db.NextIDs["schedules"] = 3
 }
+
+func (db *Database) Reset() {
+	db.Mu.Lock()
+	defer db.Mu.Unlock()
+
+	db.Movies = make(map[int]models.Movie)
+	db.Studios = make(map[int]models.Studio)
+	db.Seats = make(map[int]models.Seat)
+	db.Schedules = make(map[int]models.Schedule)
+	db.Bookings = make(map[int]models.Booking)
+	db.Tickets = make(map[int]models.Ticket)
+	db.Payments = make(map[int]models.Payment)
+	db.NextIDs = map[string]int{
+		"movies":    1,
+		"studios":   1,
+		"seats":     1,
+		"schedules": 1,
+		"bookings":  1,
+		"tickets":   1,
+		"payments":  1,
+	}
+
+	db.seed()
+}

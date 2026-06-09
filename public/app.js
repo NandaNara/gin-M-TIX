@@ -17,6 +17,7 @@ function mtixApp() {
         // Booking
         currentBooking: null,
         paymentAmount: 0,
+        showConfirmModal: false,
         
         // Error handling
         error: '',
@@ -60,8 +61,29 @@ function mtixApp() {
             }
         },
 
-        logout() {
+        async logout() {
+            if (this.user) {
+                try {
+                    await fetch('/logout', { method: 'POST' });
+                } catch (e) {
+                    console.error('Logout failed', e);
+                }
+            }
+            
+            // Reset all state
             this.user = null;
+            this.movies = [];
+            this.schedules = [];
+            this.seats = [];
+            this.selectedMovie = null;
+            this.selectedSchedule = null;
+            this.selectedSeats = [];
+            this.ticketType = 'regular';
+            this.currentBooking = null;
+            this.paymentAmount = 0;
+            this.showConfirmModal = false;
+            this.error = '';
+            
             localStorage.removeItem('mtix_user');
             this.view = 'login';
         },
@@ -155,10 +177,34 @@ function mtixApp() {
                 
                 const data = await res.json();
                 this.currentBooking = data.data;
-                this.paymentAmount = this.currentBooking.total_amount;
+                this.paymentAmount = this.currentBooking.total_price;
                 this.view = 'checkout';
+                this.showConfirmModal = false;
             } catch (err) {
                 this.error = err.message;
+            } finally {
+                this.isLoading = false;
+            }
+        },
+
+        async cancelBooking() {
+            if (!this.currentBooking) {
+                this.view = 'seats';
+                return;
+            }
+            
+            this.isLoading = true;
+            try {
+                await fetch(`/bookings/${this.currentBooking.id}`, {
+                    method: 'DELETE'
+                });
+                this.currentBooking = null;
+                this.selectedSeats = [];
+                // Refresh seats
+                this.selectSchedule(this.selectedSchedule);
+            } catch (err) {
+                console.error(err);
+                this.view = 'seats';
             } finally {
                 this.isLoading = false;
             }

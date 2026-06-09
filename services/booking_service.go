@@ -111,3 +111,7 @@ func (s *BookingService) GetBooking(id int) (models.Booking, bool) {
 func (s *BookingService) GetUserBookings(userID int) []models.Booking {
 	return s.bookingRepo.GetByUserID(userID)
 }
+
+func (s *BookingService) CancelBooking(id int) (models.Booking, error) {
+	return s.bookingRepo.Cancel(id)
+}

@@ -258,13 +258,53 @@
                         
                         <div x-show="error" class="text-red-400 text-xs mb-4 text-center" x-text="error"></div>
 
-                        <button @click="bookTickets()" :disabled="selectedSeats.length === 0 || isLoading" 
+                        <button @click="showConfirmModal = true" :disabled="selectedSeats.length === 0 || isLoading" 
                             class="w-full py-4 rounded-lg font-semibold flex justify-center items-center gap-2 transition-all duration-300"
                             :class="selectedSeats.length > 0 ? 'bg-gold text-dark hover:shadow-[0_0_20px_rgba(212,175,55,0.4)]' : 'bg-darker text-gray-600 cursor-not-allowed'">
-                            <span x-show="!isLoading">Proceed to Payment</span>
-                            <i x-show="isLoading" data-lucide="loader-2" class="w-5 h-5 animate-spin"></i>
+                            <span>Proceed to Payment</span>
                         </button>
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CONFIRMATION MODAL -->
+        <div x-show="showConfirmModal" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <!-- Backdrop -->
+            <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" @click="showConfirmModal = false" x-transition.opacity></div>
+            
+            <!-- Modal Content -->
+            <div class="glass relative w-full max-w-md p-8 rounded-2xl border-t-4 border-gold shadow-2xl" x-transition.scale>
+                <div class="w-16 h-16 bg-gold/20 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <i data-lucide="ticket" class="w-8 h-8 text-gold"></i>
+                </div>
+                
+                <h3 class="font-serif text-2xl text-center text-white mb-2">Confirm Booking</h3>
+                <p class="text-center text-gray-400 mb-6 text-sm">Please review your ticket details carefully. Seats will be locked upon confirmation.</p>
+                
+                <div class="bg-darker/50 rounded-xl p-5 mb-8 border border-white/5 space-y-3 text-sm">
+                    <div class="flex justify-between">
+                        <span class="text-gray-500">Movie</span>
+                        <span class="text-white font-medium" x-text="selectedMovie?.title"></span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-500">Seats (<span x-text="selectedSeats.length"></span>)</span>
+                        <span class="text-gold font-medium" x-text="selectedSeats.map(s => s.code).join(', ')"></span>
+                    </div>
+                    <div class="flex justify-between border-t border-white/10 pt-3 mt-1">
+                        <span class="text-gray-400">Total Price</span>
+                        <span class="text-xl font-serif text-gold" x-text="formatRupiah(totalPrice)"></span>
+                    </div>
+                </div>
+
+                <div x-show="error" class="text-red-400 text-xs mb-4 text-center" x-text="error"></div>
+
+                <div class="flex gap-4">
+                    <button @click="showConfirmModal = false" :disabled="isLoading" class="w-1/2 py-3 border border-white/20 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-colors">Go Back</button>
+                    <button @click="bookTickets()" :disabled="isLoading" class="w-1/2 py-3 bg-gold text-dark rounded-lg font-semibold flex justify-center items-center gap-2 hover:bg-yellow-500 hover:shadow-[0_0_15px_rgba(212,175,55,0.3)] transition-all">
+                        <span x-show="!isLoading">Confirm</span>
+                        <i x-show="isLoading" data-lucide="loader-2" class="w-5 h-5 animate-spin"></i>
+                    </button>
                 </div>
             </div>
         </div>
@@ -291,12 +331,12 @@
 
                     <div class="flex justify-between items-center mb-8">
                         <span class="text-lg text-gray-300">Amount to Pay</span>
-                        <span class="text-3xl font-serif text-gold" x-text="formatRupiah(currentBooking?.total_amount)"></span>
+                        <span class="text-3xl font-serif text-gold" x-text="formatRupiah(currentBooking?.total_price)"></span>
                     </div>
 
                     <div>
                         <label class="block text-xs uppercase tracking-wider text-gray-500 mb-2">Simulate Payment Input</label>
-                        <input type="number" x-model="paymentAmount" class="w-full bg-darker border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-gold mb-2">
+                        <input type="number" x-model="paymentAmount" class="w-full bg-darker border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-gold mb-2" readonly>
                         <p class="text-xs text-gray-500">Pay exactly the amount above to succeed.</p>
                     </div>
                     
@@ -307,7 +347,7 @@
                 </div>
 
                 <div class="flex gap-4">
-                    <button @click="view = 'seats'" class="w-1/3 py-3 border border-white/20 rounded-lg text-white hover:bg-white/5 transition-colors">Cancel</button>
+                    <button @click="cancelBooking()" class="w-1/3 py-3 border border-white/20 rounded-lg text-white hover:bg-white/5 hover:border-red-500 hover:text-red-400 transition-colors">Cancel Booking</button>
                     <button @click="pay()" :disabled="isLoading" class="w-2/3 py-3 bg-gold text-dark rounded-lg font-semibold flex justify-center items-center gap-2 hover:bg-yellow-500 transition-colors">
                         <span x-show="!isLoading">Confirm Payment</span>
                         <i x-show="isLoading" data-lucide="loader-2" class="w-5 h-5 animate-spin"></i>

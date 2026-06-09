@@ -3,6 +3,8 @@ package controllers
 import (
 	"net/http"
 
+	"gin-M-TIX/config"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -26,4 +28,11 @@ func Login(c *gin.Context) {
 			"username": request.Username,
 		},
 	})
+}
+
+func Logout(db *config.Database) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		db.Reset()
+		c.JSON(http.StatusOK, gin.H{"message": "logout successful, database reset"})
+	}
 }

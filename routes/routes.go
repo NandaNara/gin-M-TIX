@@ -35,6 +35,7 @@ func SetupRouter(db *config.Database) *gin.Engine {
 	bookingController := controllers.NewBookingController(bookingFacade)
 
 	router.POST("/login", controllers.Login)
+	router.POST("/logout", controllers.Logout(db))
 
 	router.GET("/movies", movieController.GetMovies)
 	router.POST("/movies", movieController.CreateMovie)
@@ -47,6 +48,7 @@ func SetupRouter(db *config.Database) *gin.Engine {
 
 	router.POST("/bookings", bookingController.CreateBooking)
 	router.GET("/bookings/:id", bookingController.GetBooking)
+	router.DELETE("/bookings/:id", bookingController.CancelBooking)
 	router.GET("/users/:id/bookings", bookingController.GetUserBookings)
 
 	router.POST("/payments", bookingController.Pay)

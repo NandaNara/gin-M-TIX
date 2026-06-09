@@ -57,6 +57,21 @@ func (ctrl *BookingController) GetUserBookings(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": ctrl.facade.GetUserBookings(id)})
 }
 
+func (ctrl *BookingController) CancelBooking(c *gin.Context) {
+	id, ok := parseIDParam(c, "id")
+	if !ok {
+		return
+	}
+
+	booking, err := ctrl.facade.CancelBooking(id)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"data": booking, "message": "Booking canceled successfully"})
+}
+
 func (ctrl *BookingController) Pay(c *gin.Context) {
 	var request services.PaymentRequest
 	if err := c.ShouldBindJSON(&request); err != nil {

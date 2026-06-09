@@ -66,6 +66,24 @@ func (r *BookingRepository) GetByUserID(userID int) []models.Booking {
 	return bookings
 }
 
+func (r *BookingRepository) Cancel(bookingID int) (models.Booking, error) {
+	r.db.Mu.Lock()
+	defer r.db.Mu.Unlock()
+
+	booking, ok := r.db.Bookings[bookingID]
+	if !ok {
+		return models.Booking{}, errors.New("booking not found")
+	}
+
+	if booking.Status == models.BookingPaid {
+		return models.Booking{}, errors.New("cannot cancel a paid booking")
+	}
+
+	booking.Status = models.BookingCanceled
+	r.db.Bookings[bookingID] = booking
+	return booking, nil
+}
+
 func (r *BookingRepository) MarkPaid(bookingID int) (models.Booking, error) {
 	r.db.Mu.Lock()
 	defer r.db.Mu.Unlock()
