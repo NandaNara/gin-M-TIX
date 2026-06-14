@@ -6,13 +6,13 @@ Proyek ini adalah contoh sederhana sistem pemesanan tiket bioskop menggunakan Go
 - Strategy Pattern untuk menentukan strategi harga.
 - Facade Pattern untuk menyederhanakan alur pemesanan dan pembayaran.
 
-Data disimpan secara in-memory melalui `config.Database`, sehingga aplikasi bisa langsung dijalankan tanpa instalasi database tambahan. Ketika server dimatikan, data booking dan payment yang dibuat saat runtime akan hilang.
+Data disimpan secara in-memory melalui `config.Database`, sehingga aplikasi bisa langsung dijalankan tanpa instalasi database tambahan. Ketika server dimatikan, atau user melakukan logout melalui endpoint `POST /logout`, seluruh data runtime akan di-reset kembali ke seed awal aplikasi.
 
 ## Tujuan Program
 
 Program ini dibuat untuk menunjukkan bagaimana design pattern dapat dipakai dalam studi kasus nyata, yaitu sistem booking tiket bioskop. Aplikasi menyediakan endpoint untuk:
 
-- Login sederhana.
+- Login dan logout sederhana.
 - Mengelola data film.
 - Membuat dan melihat jadwal tayang.
 - Melihat kursi pada jadwal tertentu.
@@ -26,6 +26,10 @@ Dengan struktur ini, setiap bagian program punya tanggung jawab yang jelas. Cont
 
 ```text
 .
+├── .dockerignore
+├── Dockerfile
+├── docker-compose.yml
+├── gin-M-TIX.postman_collection.json
 ├── main.go
 ├── config/
 │   └── database.go
@@ -79,15 +83,17 @@ Alur utama booking tiket:
 1. User melihat daftar film melalui `GET /movies`.
 2. User melihat jadwal tayang melalui `GET /schedules`.
 3. User melihat daftar kursi pada jadwal tertentu melalui `GET /schedules/:id/seats`.
-4. User membuat booking melalui `POST /bookings`.
-5. `BookingController` mengirim request ke `BookingFacade`.
-6. `BookingFacade` meneruskan proses ke `BookingService`.
-7. `BookingService` memvalidasi jadwal, kursi, dan jenis tiket.
-8. `PricingService` memilih strategi harga weekday atau weekend.
-9. `TicketFactory` membuat tiket sesuai jenis tiket, yaitu `regular` atau `vip`.
-10. `BookingRepository` menyimpan booking dan tiket ke database in-memory.
-11. User membayar melalui `POST /payments`.
-12. `PaymentService` memvalidasi nominal pembayaran dan mengubah status booking menjadi `paid` jika pembayaran berhasil.
+4. Pada antarmuka web, user melihat total harga dan melakukan konfirmasi terlebih dahulu sebelum booking dibuat.
+5. User membuat booking melalui `POST /bookings`.
+6. `BookingController` mengirim request ke `BookingFacade`.
+7. `BookingFacade` meneruskan proses ke `BookingService`.
+8. `BookingService` memvalidasi jadwal, kursi, dan jenis tiket.
+9. `PricingService` memilih strategi harga weekday atau weekend.
+10. `TicketFactory` membuat tiket sesuai jenis tiket, yaitu `regular`, `vip`, atau `student`.
+11. `BookingRepository` menyimpan booking dan tiket ke database in-memory.
+12. User membayar melalui `POST /payments`.
+13. `PaymentService` memvalidasi nominal pembayaran dan mengubah status booking menjadi `paid` jika pembayaran berhasil.
+14. Saat user logout melalui `POST /logout`, database in-memory di-reset ke kondisi awal sehingga aplikasi kembali bersih.
 
 ## Penerapan Design Pattern
 
@@ -156,6 +162,7 @@ payment, booking, err := ctrl.facade.Pay(request)
 | Method | Endpoint | Fungsi |
 | --- | --- | --- |
 | POST | `/login` | Login demo |
+| POST | `/logout` | Logout dan reset data runtime ke seed awal |
 | GET | `/movies` | Melihat daftar film |
 | POST | `/movies` | Menambah film |
 | PUT | `/movies/:id` | Mengubah film |
@@ -176,6 +183,12 @@ Proyek ini dilengkapi dengan antarmuka web bertema **"Midnight Premiere"** yang 
 - **Lucide Icons** untuk ikon minimalis.
 
 Seluruh file frontend berada di dalam direktori `public/`.
+
+Fitur utama antarmuka web saat ini:
+- Login dan logout langsung dari browser.
+- Modal konfirmasi sebelum booking dibuat.
+- Halaman checkout menampilkan nominal pembayaran yang harus dibayar.
+- Logout akan membersihkan state frontend dan me-reset database in-memory ke kondisi awal.
 
 ## Cara Menjalankan
 
@@ -222,21 +235,27 @@ Setelah container berjalan, akses aplikasi melalui browser di `http://localhost:
 ### Login
 
 ```bash
-curl -X POST http://localhost:8080/login \
+curl -X POST http://localhost:8999/login \
   -H "Content-Type: application/json" \
   -d '{"username":"admin","password":"admin"}'
+```
+
+### Logout
+
+```bash
+curl -X POST http://localhost:8999/logout
 ```
 
 ### Melihat Film
 
 ```bash
-curl http://localhost:8080/movies
+curl http://localhost:8999/movies
 ```
 
 ### Membuat Jadwal
 
 ```bash
-curl -X POST http://localhost:8080/schedules \
+curl -X POST http://localhost:8999/schedules \
   -H "Content-Type: application/json" \
   -d '{
     "movie_id": 1,
@@ -249,13 +268,13 @@ curl -X POST http://localhost:8080/schedules \
 ### Melihat Kursi Jadwal
 
 ```bash
-curl http://localhost:8080/schedules/1/seats
+curl http://localhost:8999/schedules/1/seats
 ```
 
 ### Membuat Booking
 
 ```bash
-curl -X POST http://localhost:8080/bookings \
+curl -X POST http://localhost:8999/bookings \
   -H "Content-Type: application/json" \
   -d '{
     "user_id": 1,
@@ -276,7 +295,7 @@ Untuk tiket VIP, gunakan:
 ### Melakukan Pembayaran
 
 ```bash
-curl -X POST http://localhost:8080/payments \
+curl -X POST http://localhost:8999/payments \
   -H "Content-Type: application/json" \
   -d '{
     "booking_id": 1,
@@ -288,6 +307,7 @@ curl -X POST http://localhost:8080/payments \
 ## Catatan
 
 - Aplikasi ini menggunakan data in-memory, bukan database permanen.
-- Login hanya demo dan belum menggunakan JWT asli.
+- Login/logout masih demo dan belum menggunakan JWT asli.
+- Logout melalui UI atau endpoint `POST /logout` akan mengembalikan aplikasi ke kondisi seed awal.
 - Kursi dianggap ter-booking berdasarkan `schedule_id`, sehingga kursi yang sama bisa dipakai lagi pada jadwal berbeda.
 - Tujuan utama proyek adalah demonstrasi design pattern pada aplikasi REST API sederhana.
