@@ -27,7 +27,7 @@ type LoginRequest struct {
 }
 
 type StudentResolveRequest struct {
-	Approved bool `json:"approved"`
+	Approved bool `json:"approved" binding:"required"`
 }
 
 type AuthController struct {
