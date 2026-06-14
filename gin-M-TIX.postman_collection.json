@@ -1,358 +1,422 @@
 {
-	"info": {
-		"name": "gin-M-TIX API",
-		"description": "Postman collection for the Cinema Ticket Booking API (gin-M-TIX)",
-		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
-	},
-	"item": [
-		{
-			"name": "General",
-			"item": [
-				{
-					"name": "Welcome",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								""
-							]
-						}
-					},
-					"response": []
-				}
-			]
-		},
-		{
-			"name": "Auth",
-			"item": [
-				{
-					"name": "Login",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"username\": \"testuser\",\n  \"password\": \"password123\"\n}"
-						},
-						"url": {
-							"raw": "{{base_url}}/login",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"login"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Logout",
-					"request": {
-						"method": "POST",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/logout",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"logout"
-							]
-						}
-					},
-					"response": []
-				}
-			]
-		},
-		{
-			"name": "Movies",
-			"item": [
-				{
-					"name": "Get All Movies",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/movies",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"movies"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Create Movie",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"title\": \"Spider-Man: No Way Home\",\n  \"genre\": \"Action\",\n  \"duration_minutes\": 148,\n  \"rating\": \"PG-13\"\n}"
-						},
-						"url": {
-							"raw": "{{base_url}}/movies",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"movies"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Update Movie",
-					"request": {
-						"method": "PUT",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"title\": \"Spider-Man: No Way Home (Extended Edition)\",\n  \"genre\": \"Action\",\n  \"duration_minutes\": 158,\n  \"rating\": \"PG-13\"\n}"
-						},
-						"url": {
-							"raw": "{{base_url}}/movies/1",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"movies",
-								"1"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Delete Movie",
-					"request": {
-						"method": "DELETE",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/movies/1",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"movies",
-								"1"
-							]
-						}
-					},
-					"response": []
-				}
-			]
-		},
-		{
-			"name": "Schedules",
-			"item": [
-				{
-					"name": "Get All Schedules",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/schedules",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"schedules"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Create Schedule",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"movie_id\": 1,\n  \"studio_id\": 1,\n  \"start_time\": \"2024-12-01T15:00:00Z\",\n  \"base_price\": 50000\n}"
-						},
-						"url": {
-							"raw": "{{base_url}}/schedules",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"schedules"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Get Schedule Seats",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/schedules/1/seats",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"schedules",
-								"1",
-								"seats"
-							]
-						}
-					},
-					"response": []
-				}
-			]
-		},
-		{
-			"name": "Bookings & Payments",
-			"item": [
-				{
-					"name": "Create Booking",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"user_id\": 1,\n  \"schedule_id\": 1,\n  \"seat_ids\": [1, 2],\n  \"ticket_type\": \"regular\"\n}"
-						},
-						"url": {
-							"raw": "{{base_url}}/bookings",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"bookings"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Get Booking",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/bookings/1",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"bookings",
-								"1"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Cancel Booking",
-					"request": {
-						"method": "DELETE",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/bookings/1",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"bookings",
-								"1"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Get User Bookings",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/users/1/bookings",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"users",
-								"1",
-								"bookings"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Pay Booking",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"booking_id\": 1,\n  \"method\": \"qris\",\n  \"amount\": 100000\n}"
-						},
-						"url": {
-							"raw": "{{base_url}}/payments",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"payments"
-							]
-						}
-					},
-					"response": []
-				}
-			]
-		}
-	],
-	"variable": [
-		{
-			"key": "base_url",
-			"value": "http://localhost:8080",
-			"type": "string"
-		}
-	]
+  "info": {
+    "_postman_id": "3fa2c28c-18c8-47c0-b90e-4e57f09a9170",
+    "name": "gin-M-TIX API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Auth & User",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"username\":\"newuser\",\"password\":\"secret\"}"
+            },
+            "url": "{{base_url}}/register"
+          }
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.collectionVariables.set('token', pm.response.json().token);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"username\":\"budi\",\"password\":\"budi\"}"
+            },
+            "url": "{{base_url}}/login"
+          }
+        },
+        {
+          "name": "My Profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": "{{base_url}}/users/me"
+          }
+        },
+        {
+          "name": "My Bookings",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": "{{base_url}}/users/me/bookings"
+          }
+        },
+        {
+          "name": "Submit Student Application",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "evidence",
+                  "type": "file",
+                  "src": ""
+                }
+              ]
+            },
+            "url": "{{base_url}}/users/me/student-application"
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": "{{base_url}}/logout"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Catalog",
+      "item": [
+        {
+          "name": "Movies",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/movies"
+          }
+        },
+        {
+          "name": "Schedules",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/schedules"
+          }
+        },
+        {
+          "name": "Schedule Seats",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/schedules/1/seats"
+          }
+        },
+        {
+          "name": "Studios",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/studios"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Booking",
+      "item": [
+        {
+          "name": "Create Booking",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"schedule_id\":1,\"seat_ids\":[1,57]}"
+            },
+            "url": "{{base_url}}/bookings"
+          }
+        },
+        {
+          "name": "Get Booking",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": "{{base_url}}/bookings/1"
+          }
+        },
+        {
+          "name": "Pay Booking",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"booking_id\":1,\"method\":\"credit_card\",\"amount\":100000}"
+            },
+            "url": "{{base_url}}/payments"
+          }
+        },
+        {
+          "name": "Cancel Booking",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": "{{base_url}}/bookings/1"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin",
+      "item": [
+        {
+          "name": "Add Movie",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {"key": "title", "value": "Dune", "type": "text"},
+                {"key": "genre", "value": "Sci-Fi", "type": "text"},
+                {"key": "duration_minutes", "value": "166", "type": "text"},
+                {"key": "rating", "value": "PG-13", "type": "text"},
+                {"key": "poster", "type": "file", "src": []}
+              ]
+            },
+            "url": "{{base_url}}/movies"
+          }
+        },
+        {
+          "name": "Edit Movie",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{token}}"}
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {"key": "title", "value": "Dune Edited", "type": "text"},
+                {"key": "genre", "value": "Sci-Fi", "type": "text"},
+                {"key": "duration_minutes", "value": "170", "type": "text"},
+                {"key": "rating", "value": "PG-13", "type": "text"},
+                {"key": "poster", "type": "file", "src": [], "disabled": true}
+              ]
+            },
+            "url": "{{base_url}}/movies/1"
+          }
+        },
+        {
+          "name": "Delete Movie",
+          "request": {
+            "method": "DELETE",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "url": "{{base_url}}/movies/1"
+          }
+        },
+        {
+          "name": "Add Schedule",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"movie_id\":1,\"studio_id\":1,\"start_time\":\"2026-12-20T19:00:00+07:00\",\"base_price\":50000}"
+            },
+            "url": "{{base_url}}/schedules"
+          }
+        },
+        {
+          "name": "Edit Schedule",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {"mode": "raw", "raw": "{\"movie_id\":1,\"studio_id\":1,\"start_time\":\"2026-12-20T20:00:00+07:00\",\"base_price\":60000}"},
+            "url": "{{base_url}}/schedules/1"
+          }
+        },
+        {
+          "name": "Delete Schedule",
+          "request": {
+            "method": "DELETE",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "url": "{{base_url}}/schedules/1"
+          }
+        },
+        {
+          "name": "Add Studio",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"name\":\"Studio Nusantara\",\"seat_rows\":6,\"seat_columns\":8}"
+            },
+            "url": "{{base_url}}/studios"
+          }
+        },
+        {
+          "name": "Edit Studio",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {"mode": "raw", "raw": "{\"name\":\"Studio Nusantara Edited\",\"seat_rows\":6,\"seat_columns\":8}"},
+            "url": "{{base_url}}/studios/1"
+          }
+        },
+        {
+          "name": "Delete Studio",
+          "request": {
+            "method": "DELETE",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "url": "{{base_url}}/studios/1"
+          }
+        },
+        {
+          "name": "Pending Student Applications",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": "{{base_url}}/admin/student-applications"
+          }
+        },
+        {
+          "name": "Student Evidence",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": "{{base_url}}/admin/student-applications/3/evidence"
+          }
+        },
+        {
+          "name": "Resolve Student",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"approved\":true}"
+            },
+            "url": "{{base_url}}/admin/student-applications/3/resolve"
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8999"
+    },
+    {
+      "key": "token",
+      "value": ""
+    }
+  ]
 }

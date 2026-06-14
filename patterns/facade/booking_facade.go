@@ -24,18 +24,18 @@ func (f *BookingFacade) CreateBooking(request services.CreateBookingRequest) (mo
 	return f.bookingService.CreateBooking(request)
 }
 
-func (f *BookingFacade) GetBooking(id int) (models.Booking, bool) {
-	return f.bookingService.GetBooking(id)
+func (f *BookingFacade) GetBookingForUser(id, userID int) (models.Booking, bool) {
+	return f.bookingService.GetBookingForUser(id, userID)
 }
 
 func (f *BookingFacade) GetUserBookings(userID int) []models.Booking {
 	return f.bookingService.GetUserBookings(userID)
 }
 
-func (f *BookingFacade) CancelBooking(id int) (models.Booking, error) {
-	return f.bookingService.CancelBooking(id)
+func (f *BookingFacade) CancelBookingForUser(id, userID int) (models.Booking, error) {
+	return f.bookingService.CancelBookingForUser(id, userID)
 }
 
-func (f *BookingFacade) Pay(request services.PaymentRequest) (models.Payment, models.Booking, error) {
-	return f.paymentService.Pay(request)
+func (f *BookingFacade) Pay(userID int, request services.PaymentRequest) (models.Payment, models.Booking, error) {
+	return f.paymentService.Pay(userID, request)
 }

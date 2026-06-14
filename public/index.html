@@ -31,6 +31,10 @@
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <!-- App Logic -->
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/booking.js"></script>
+    <script src="js/admin.js"></script>
     <script src="app.js"></script>
     
     <style>
@@ -54,15 +58,18 @@
 
     <!-- Navigation -->
     <nav x-show="user" class="fixed top-0 w-full z-50 glass border-b border-white/5" style="display: none;">
-        <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-            <div class="flex items-center gap-2 cursor-pointer" @click="view = 'movies'">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex justify-between items-center gap-3">
+            <div class="flex items-center gap-2 cursor-pointer" @click="goHome()">
                 <i data-lucide="film" class="text-gold w-6 h-6"></i>
-                <span class="font-serif text-xl font-bold text-white tracking-wider">MIDNIGHT PREMIERE</span>
+                <span class="hidden sm:inline font-serif text-xl font-bold text-white tracking-wider">MIDNIGHT PREMIERE</span>
             </div>
-            <div class="flex items-center gap-6">
-                <span class="text-sm text-gray-400" x-text="'Welcome, ' + user?.username"></span>
+            <div class="flex items-center gap-3 sm:gap-6">
+                <button x-show="!user?.is_admin" @click="loadMovies()" class="text-sm hover:text-gold transition-colors">Movies</button>
+                <button x-show="!user?.is_admin" @click="showProfile()" class="text-sm hover:text-gold transition-colors">Profile</button>
+                <button x-show="user?.is_admin" @click="loadAdmin()" class="text-sm hover:text-gold transition-colors">Admin</button>
+                <span class="hidden md:inline text-sm text-gray-400" x-text="'Welcome, ' + user?.username"></span>
                 <button @click="logout()" class="text-sm hover:text-gold transition-colors duration-300 flex items-center gap-2">
-                    <i data-lucide="log-out" class="w-4 h-4"></i> Logout
+                    <i data-lucide="log-out" class="w-4 h-4"></i><span class="hidden sm:inline">Logout</span>
                 </button>
             </div>
         </div>
@@ -102,7 +109,214 @@
                         <span x-show="!isLoading">Enter Premiere</span>
                         <i x-show="isLoading" data-lucide="loader-2" class="w-5 h-5 animate-spin"></i>
                     </button>
+                    <button type="button" @click="error = ''; view = 'register'" class="w-full text-sm text-gray-400 hover:text-gold">Create an account</button>
                 </form>
+            </div>
+        </div>
+
+        <!-- REGISTER VIEW -->
+        <div x-show="view === 'register'" style="display: none;" class="w-full max-w-md mx-auto" x-transition.opacity>
+            <div class="text-center mb-10">
+                <i data-lucide="user-plus" class="text-gold w-12 h-12 mx-auto mb-4"></i>
+                <h1 class="font-serif text-3xl text-white mb-2 tracking-widest">CREATE ACCOUNT</h1>
+                <p class="text-gray-500 text-sm">Join Midnight Premiere</p>
+            </div>
+
+            <div class="glass p-8 rounded-2xl shadow-2xl relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-gold to-transparent"></div>
+                <form @submit.prevent="register($refs.registerUsername.value, $refs.registerPassword.value)" class="space-y-6">
+                    <div x-show="error" class="bg-red-900/20 border border-red-900/50 text-red-400 p-3 rounded-lg text-sm" x-text="error"></div>
+                    <div>
+                        <label class="block text-xs uppercase tracking-wider text-gray-500 mb-2">Username</label>
+                        <input type="text" x-ref="registerUsername" minlength="3" maxlength="32" class="w-full bg-darker border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-gold" required>
+                    </div>
+                    <div>
+                        <label class="block text-xs uppercase tracking-wider text-gray-500 mb-2">Password</label>
+                        <input type="password" x-ref="registerPassword" minlength="4" maxlength="72" class="w-full bg-darker border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-gold" required>
+                    </div>
+                    <button type="submit" :disabled="isLoading" class="w-full bg-gold text-dark font-semibold py-3 rounded-lg disabled:opacity-50">
+                        <span x-show="!isLoading">Register</span>
+                        <span x-show="isLoading">Creating...</span>
+                    </button>
+                    <button type="button" @click="error = ''; view = 'login'" class="w-full text-sm text-gray-400 hover:text-gold">Back to login</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- PROFILE VIEW -->
+        <div x-show="view === 'profile'" style="display: none;" class="w-full max-w-4xl mx-auto" x-transition.opacity>
+            <h2 class="font-serif text-3xl text-white mb-8 border-l-4 border-gold pl-4">User Profile</h2>
+            <div class="grid md:grid-cols-2 gap-8">
+                <div class="glass p-8 rounded-2xl">
+                    <div class="text-xs uppercase tracking-wider text-gray-500 mb-2">Username</div>
+                    <div class="text-2xl text-white mb-8" x-text="user?.username"></div>
+
+                    <div class="text-xs uppercase tracking-wider text-gray-500 mb-2">Student Status</div>
+                    <div class="inline-flex px-3 py-1 rounded-full text-sm mb-6"
+                         :class="user?.is_student === 2 ? 'bg-green-500/15 text-green-400' : user?.is_student === 1 ? 'bg-yellow-500/15 text-yellow-400' : 'bg-white/5 text-gray-400'"
+                         x-text="studentStatusLabel(user?.is_student)"></div>
+
+                    <form x-show="user?.is_student === 0" @submit.prevent="submitStudentApplication($refs.studentEvidence.files[0])" class="space-y-4">
+                        <p class="text-sm text-gray-400">Upload a student card or enrollment document for admin verification.</p>
+                        <input x-ref="studentEvidence" type="file" accept=".jpg,.jpeg,.png,.pdf,image/jpeg,image/png,application/pdf"
+                               class="block w-full text-sm text-gray-400 file:mr-4 file:rounded-lg file:border-0 file:bg-gold file:px-4 file:py-2 file:font-semibold file:text-dark" required>
+                        <button type="submit" :disabled="isLoading" class="w-full bg-gold text-dark font-semibold py-3 rounded-lg disabled:opacity-50">Submit Application</button>
+                    </form>
+                    <p x-show="user?.is_student === 1" class="text-sm text-yellow-400">Your document is waiting for admin confirmation.</p>
+                    <p x-show="user?.is_student === 2" class="text-sm text-green-400">Student pricing is applied automatically when you book.</p>
+                    <p x-show="error" class="text-red-400 text-sm mt-4" x-text="error"></p>
+                </div>
+
+                <div class="glass p-8 rounded-2xl">
+                    <h3 class="font-serif text-xl text-white mb-6">My Bookings</h3>
+                    <div class="space-y-3 max-h-96 overflow-auto">
+                        <template x-for="booking in bookings" :key="booking.id">
+                            <div class="bg-darker/60 border border-white/5 rounded-lg p-4 flex justify-between gap-4">
+                                <div>
+                                    <div class="text-white" x-text="'#MTIX' + String(booking.id).padStart(5, '0')"></div>
+                                    <div class="text-xs text-gray-500" x-text="booking.tickets?.map(ticket => ticket.seat_code).join(', ')"></div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-gold text-sm" x-text="formatRupiah(booking.total_price)"></div>
+                                    <div class="text-xs uppercase text-gray-500" x-text="booking.status"></div>
+                                </div>
+                            </div>
+                        </template>
+                        <p x-show="bookings.length === 0" class="text-gray-500 italic">No bookings yet.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ADMIN VIEW -->
+        <div x-show="view === 'admin' && user?.is_admin" style="display: none;" class="w-full" x-transition.opacity>
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+                <h2 class="font-serif text-3xl text-white border-l-4 border-gold pl-4">Admin Dashboard</h2>
+                <div class="flex flex-wrap gap-2">
+                    <template x-for="tab in ['movie', 'schedule', 'studio', 'student']" :key="tab">
+                        <button @click="adminTab = tab"
+                                :class="adminTab === tab ? 'bg-gold text-dark' : 'glass text-gray-400'"
+                                class="px-4 py-2 rounded-lg text-sm capitalize" x-text="tab"></button>
+                    </template>
+                </div>
+            </div>
+
+            <p x-show="error" class="bg-red-900/20 border border-red-900/50 text-red-400 p-3 rounded-lg text-sm mb-4" x-text="error"></p>
+            <p x-show="adminMessage" class="bg-green-900/20 border border-green-900/50 text-green-400 p-3 rounded-lg text-sm mb-4" x-text="adminMessage"></p>
+
+            <div x-show="adminTab === 'movie'" class="grid lg:grid-cols-2 gap-8">
+                <form x-ref="movieForm" @submit.prevent="createMovie($event.target)" class="glass p-8 rounded-2xl space-y-4">
+                    <h3 class="font-serif text-xl text-white mb-2" x-text="editingMovieId ? 'Edit Movie' : 'Add Movie'"></h3>
+                    <input name="title" placeholder="Title" class="w-full bg-darker border border-white/10 rounded-lg px-4 py-3 text-white" required>
+                    <input name="genre" placeholder="Genre" class="w-full bg-darker border border-white/10 rounded-lg px-4 py-3 text-white" required>
+                    <div class="grid grid-cols-2 gap-4">
+                        <input name="duration_minutes" type="number" min="1" placeholder="Duration (minutes)" class="bg-darker border border-white/10 rounded-lg px-4 py-3 text-white" required>
+                        <input name="rating" placeholder="Rating" class="bg-darker border border-white/10 rounded-lg px-4 py-3 text-white">
+                    </div>
+                    <input name="poster" type="file" accept=".jpg,.jpeg,.png,image/jpeg,image/png"
+                           :required="!editingMovieId"
+                           class="block w-full text-sm text-gray-400 file:mr-4 file:rounded-lg file:border-0 file:bg-gold file:px-4 file:py-2 file:font-semibold file:text-dark">
+                    <p x-show="editingMovieId" class="text-xs text-gray-500">Leave empty to keep the current poster.</p>
+                    <button :disabled="isLoading" class="w-full bg-gold text-dark font-semibold py-3 rounded-lg" x-text="editingMovieId ? 'Save Movie' : 'Add Movie'"></button>
+                    <button x-show="editingMovieId" type="button" @click="cancelEdit('Movie', $refs.movieForm)" class="w-full text-sm text-gray-400">Cancel edit</button>
+                </form>
+                <div class="glass p-8 rounded-2xl">
+                    <h3 class="font-serif text-xl text-white mb-4">Movies</h3>
+                    <div class="space-y-2 max-h-96 overflow-auto">
+                        <template x-for="movie in movies" :key="movie.id">
+                            <div class="bg-darker/60 rounded-lg p-3 flex items-center justify-between gap-3">
+                                <div><div class="text-white" x-text="movie.title"></div><div class="text-xs text-gray-500" x-text="movie.genre"></div></div>
+                                <div class="flex gap-2">
+                                    <button @click="editMovie(movie, $refs.movieForm)" class="text-sm text-gold">Edit</button>
+                                    <button @click="deleteAdmin('/movies/' + movie.id)" class="text-sm text-red-400">Delete</button>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+            </div>
+
+            <div x-show="adminTab === 'schedule'" class="grid lg:grid-cols-2 gap-8">
+                <form x-ref="scheduleForm" @submit.prevent="createSchedule($event.target)" class="glass p-8 rounded-2xl space-y-4">
+                    <h3 class="font-serif text-xl text-white mb-2" x-text="editingScheduleId ? 'Edit Schedule' : 'Add Schedule'"></h3>
+                    <select name="movie_id" class="w-full bg-darker border border-white/10 rounded-lg px-4 py-3 text-white" required>
+                        <option value="">Select movie</option>
+                        <template x-for="movie in movies" :key="movie.id"><option :value="movie.id" x-text="movie.title"></option></template>
+                    </select>
+                    <select name="studio_id" class="w-full bg-darker border border-white/10 rounded-lg px-4 py-3 text-white" required>
+                        <option value="">Select studio</option>
+                        <template x-for="studio in studios" :key="studio.id"><option :value="studio.id" x-text="studio.name"></option></template>
+                    </select>
+                    <input name="start_time" type="datetime-local" class="w-full bg-darker border border-white/10 rounded-lg px-4 py-3 text-white" required>
+                    <input name="base_price" type="number" min="1" placeholder="Base price" class="w-full bg-darker border border-white/10 rounded-lg px-4 py-3 text-white" required>
+                    <button :disabled="isLoading" class="w-full bg-gold text-dark font-semibold py-3 rounded-lg" x-text="editingScheduleId ? 'Save Schedule' : 'Add Schedule'"></button>
+                    <button x-show="editingScheduleId" type="button" @click="cancelEdit('Schedule', $refs.scheduleForm)" class="w-full text-sm text-gray-400">Cancel edit</button>
+                </form>
+                <div class="glass p-8 rounded-2xl">
+                    <h3 class="font-serif text-xl text-white mb-4">Schedules</h3>
+                    <div class="space-y-2 max-h-96 overflow-auto">
+                        <template x-for="schedule in schedules" :key="schedule.id">
+                            <div class="bg-darker/60 rounded-lg p-3 flex items-center justify-between gap-3">
+                                <div>
+                                    <div class="text-white" x-text="schedule.movie?.title"></div>
+                                    <div class="text-xs text-gray-500" x-text="formatDate(schedule.start_time) + ' · ' + schedule.studio?.name"></div>
+                                </div>
+                                <div class="flex gap-2">
+                                    <button @click="editSchedule(schedule, $refs.scheduleForm)" class="text-sm text-gold">Edit</button>
+                                    <button @click="deleteAdmin('/schedules/' + schedule.id)" class="text-sm text-red-400">Delete</button>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+            </div>
+
+            <div x-show="adminTab === 'studio'" class="grid lg:grid-cols-2 gap-8">
+                <form x-ref="studioForm" @submit.prevent="createStudio($event.target)" class="glass p-8 rounded-2xl space-y-4">
+                    <h3 class="font-serif text-xl text-white mb-2" x-text="editingStudioId ? 'Edit Studio' : 'Add Studio'"></h3>
+                    <input name="name" placeholder="Studio name" class="w-full bg-darker border border-white/10 rounded-lg px-4 py-3 text-white" required>
+                    <div class="grid grid-cols-2 gap-4">
+                        <input name="seat_rows" type="number" min="1" max="26" placeholder="Rows" class="bg-darker border border-white/10 rounded-lg px-4 py-3 text-white" required>
+                        <input name="seat_columns" type="number" min="1" max="50" placeholder="Columns" class="bg-darker border border-white/10 rounded-lg px-4 py-3 text-white" required>
+                    </div>
+                    <p class="text-xs text-gray-500">The last two rows are generated as VIP.</p>
+                    <button :disabled="isLoading" class="w-full bg-gold text-dark font-semibold py-3 rounded-lg" x-text="editingStudioId ? 'Save Studio' : 'Add Studio'"></button>
+                    <button x-show="editingStudioId" type="button" @click="cancelEdit('Studio', $refs.studioForm)" class="w-full text-sm text-gray-400">Cancel edit</button>
+                </form>
+                <div class="glass p-8 rounded-2xl">
+                    <h3 class="font-serif text-xl text-white mb-4">Studios</h3>
+                    <div class="space-y-2">
+                        <template x-for="studio in studios" :key="studio.id">
+                            <div class="bg-darker/60 rounded-lg p-3 flex items-center justify-between gap-3">
+                                <div><div class="text-white" x-text="studio.name"></div><div class="text-xs text-gray-500" x-text="studio.seat_rows + ' × ' + studio.seat_columns"></div></div>
+                                <div class="flex gap-2">
+                                    <button @click="editStudio(studio, $refs.studioForm)" class="text-sm text-gold">Edit</button>
+                                    <button @click="deleteAdmin('/studios/' + studio.id)" class="text-sm text-red-400">Delete</button>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+            </div>
+
+            <div x-show="adminTab === 'student'" class="glass p-8 rounded-2xl">
+                <h3 class="font-serif text-xl text-white mb-6">Student Confirmation</h3>
+                <div class="space-y-3">
+                    <template x-for="application in studentApplications" :key="application.user_id">
+                        <div class="bg-darker/60 border border-white/5 rounded-lg p-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                            <div>
+                                <div class="text-white" x-text="application.username"></div>
+                                <div class="text-xs text-gray-500" x-text="application.filename + ' · ' + formatDate(application.submitted_at)"></div>
+                            </div>
+                            <div class="flex gap-2">
+                                <button @click="viewStudentEvidence(application.user_id)" class="px-3 py-2 border border-white/20 rounded text-sm">View</button>
+                                <button @click="resolveStudent(application.user_id, 'reject')" class="px-3 py-2 border border-red-500/50 text-red-400 rounded text-sm">Reject</button>
+                                <button @click="resolveStudent(application.user_id, 'approve')" class="px-3 py-2 bg-gold text-dark rounded text-sm font-semibold">Approve</button>
+                            </div>
+                        </div>
+                    </template>
+                    <p x-show="studentApplications.length === 0" class="text-gray-500 italic">No pending applications.</p>
+                </div>
             </div>
         </div>
 
@@ -115,7 +329,7 @@
                     <div class="group relative rounded-xl overflow-hidden cursor-pointer shadow-lg hover:shadow-gold/20 transition-all duration-500" @click="selectMovie(movie)">
                         <!-- Aspect ratio 2:3 -->
                         <div class="aspect-[2/3] bg-darker relative">
-                            <img :src="posters[movie.id] || 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=800&auto=format&fit=crop'" class="w-full h-full object-cover opacity-70 group-hover:opacity-100 group-hover:scale-110 transition-all duration-700" alt="Poster">
+                            <img :src="movie.poster_url || 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=800&auto=format&fit=crop'" class="w-full h-full object-cover opacity-70 group-hover:opacity-100 group-hover:scale-110 transition-all duration-700" :alt="movie.title + ' poster'">
                             <div class="absolute inset-0 bg-gradient-to-t from-dark via-dark/50 to-transparent"></div>
                         </div>
                         <div class="absolute bottom-0 left-0 w-full p-6 translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
@@ -139,7 +353,7 @@
             
             <div class="flex flex-col md:flex-row gap-8 items-start" x-if="selectedMovie">
                 <div class="w-full md:w-1/3 aspect-[2/3] rounded-xl overflow-hidden shadow-2xl relative">
-                    <img :src="posters[selectedMovie.id] || 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=800&auto=format&fit=crop'" class="w-full h-full object-cover">
+                    <img :src="selectedMovie.poster_url || 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=800&auto=format&fit=crop'" class="w-full h-full object-cover" :alt="selectedMovie.title + ' poster'">
                     <div class="absolute inset-0 bg-gradient-to-t from-dark to-transparent"></div>
                     <div class="absolute bottom-6 left-6 right-6">
                         <span class="text-gold text-sm tracking-widest uppercase mb-1 block" x-text="selectedMovie.genre"></span>
@@ -157,16 +371,12 @@
                             <div class="glass p-6 rounded-xl hover:border-gold/50 cursor-pointer transition-colors group flex justify-between items-center" @click="selectSchedule(schedule)">
                                 <div>
                                     <div class="text-xl text-white font-medium mb-1" x-text="formatDate(schedule.start_time)"></div>
-                                    <div class="flex items-center gap-3 text-sm text-gray-400">
-                                        <span class="flex items-center gap-1"><i data-lucide="monitor-play" class="w-4 h-4"></i> Studio <span x-text="schedule.studio_id"></span></span>
-                                        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-                                        <span class="text-gold" x-text="schedule.pricing_strategy"></span>
+                                    <div class="flex items-center gap-1 text-sm text-gray-400">
+                                        <i data-lucide="monitor-play" class="w-4 h-4"></i>
+                                        <span x-text="schedule.studio?.name || ('Studio ' + schedule.studio_id)"></span>
                                     </div>
                                 </div>
-                                <div class="text-right">
-                                    <div class="text-lg text-white" x-text="formatRupiah(schedule.seat_price)"></div>
-                                    <i data-lucide="chevron-right" class="w-5 h-5 text-gray-500 group-hover:text-gold ml-auto mt-2 transition-colors"></i>
-                                </div>
+                                <i data-lucide="chevron-right" class="w-5 h-5 text-gray-500 group-hover:text-gold transition-colors"></i>
                             </div>
                         </template>
                         <div x-show="schedules.length === 0" class="text-gray-500 italic">No schedules available.</div>
@@ -191,30 +401,34 @@
                     <div class="text-center text-xs text-gray-500 uppercase tracking-widest mb-12">Cinema Screen</div>
                     
                     <!-- Seat Grid -->
-                    <div class="grid grid-cols-5 gap-4 max-w-lg mx-auto">
-                        <template x-for="seat in seats" :key="seat.id">
-                            <button 
-                                @click="toggleSeat(seat)"
-                                :disabled="seat.status !== 'available'"
-                                :class="{
-                                    'border-gray-600 text-gray-400 hover:border-gold hover:text-gold': seat.status === 'available' && !selectedSeats.find(s => s.id === seat.id),
-                                    'bg-gold border-gold text-dark font-bold shadow-[0_0_15px_rgba(212,175,55,0.4)]': selectedSeats.find(s => s.id === seat.id),
-                                    'bg-darker border-darker text-gray-700 cursor-not-allowed opacity-50': seat.status !== 'available'
-                                }"
-                                class="aspect-square rounded-lg border flex items-center justify-center text-sm transition-all duration-200 relative group"
-                            >
-                                <span x-text="seat.code"></span>
-                                <!-- Tooltip -->
-                                <div class="absolute -top-8 bg-black text-white text-[10px] py-1 px-2 rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap"
-                                     x-show="seat.status === 'available'" x-text="'Seat ' + seat.code"></div>
-                            </button>
-                        </template>
+                    <div class="overflow-x-auto pb-2">
+                        <div class="grid gap-2 mx-auto"
+                             :style="`grid-template-columns: repeat(${selectedSchedule?.studio?.seat_columns || 5}, 2.75rem); width: max-content`">
+                            <template x-for="seat in seats" :key="seat.id">
+                                <button
+                                    @click="toggleSeat(seat)"
+                                    :disabled="seat.status !== 'available'"
+                                    :class="{
+                                        'border-gray-600 text-gray-400 hover:border-white': seat.status === 'available' && !seat.is_vip && !selectedSeats.find(s => s.id === seat.id),
+                                        'border-yellow-400 bg-yellow-500/10 text-yellow-300 hover:bg-yellow-500/20': seat.status === 'available' && seat.is_vip && !selectedSeats.find(s => s.id === seat.id),
+                                        'bg-white border-white text-dark font-bold shadow-[0_0_15px_rgba(255,255,255,0.3)]': selectedSeats.find(s => s.id === seat.id),
+                                        'bg-darker border-darker text-gray-700 cursor-not-allowed opacity-50': seat.status !== 'available'
+                                    }"
+                                    class="w-11 h-11 rounded-lg border flex items-center justify-center text-xs transition-all duration-200 relative group"
+                                >
+                                    <span x-text="seat.code"></span>
+                                    <div class="absolute -top-8 bg-black text-white text-[10px] py-1 px-2 rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap"
+                                         x-show="seat.status === 'available'" x-text="(seat.is_vip ? 'VIP ' : '') + 'Seat ' + seat.code"></div>
+                                </button>
+                            </template>
+                        </div>
                     </div>
 
                     <!-- Legend -->
                     <div class="flex justify-center gap-6 mt-12 text-xs text-gray-400">
                         <div class="flex items-center gap-2"><div class="w-4 h-4 border border-gray-600 rounded"></div> Available</div>
-                        <div class="flex items-center gap-2"><div class="w-4 h-4 bg-gold rounded shadow-[0_0_10px_rgba(212,175,55,0.4)]"></div> Selected</div>
+                        <div class="flex items-center gap-2"><div class="w-4 h-4 border border-yellow-400 bg-yellow-500/10 rounded"></div> VIP</div>
+                        <div class="flex items-center gap-2"><div class="w-4 h-4 bg-white rounded"></div> Selected</div>
                         <div class="flex items-center gap-2"><div class="w-4 h-4 bg-darker rounded opacity-50"></div> Booked</div>
                     </div>
                 </div>
@@ -239,19 +453,10 @@
                             </div>
                         </div>
 
-                        <div class="mb-6">
-                            <label class="block text-xs uppercase tracking-wider text-gray-500 mb-3">Ticket Type</label>
-                            <div class="grid grid-cols-3 gap-2">
-                                <button @click="ticketType = 'regular'" :class="ticketType === 'regular' ? 'bg-white/10 border-white/30 text-white' : 'border-white/5 text-gray-500'" class="border rounded py-2 text-xs transition-colors">Regular</button>
-                                <button @click="ticketType = 'vip'" :class="ticketType === 'vip' ? 'bg-gold/20 border-gold/50 text-gold' : 'border-white/5 text-gray-500'" class="border rounded py-2 text-xs transition-colors">VIP (+50%)</button>
-                                <button @click="ticketType = 'student'" :class="ticketType === 'student' ? 'bg-white/10 border-white/30 text-white' : 'border-white/5 text-gray-500'" class="border rounded py-2 text-xs transition-colors">Student</button>
-                            </div>
-                        </div>
-
                         <div class="border-t border-white/10 pt-4 mb-6">
                             <div class="flex justify-between items-center mb-1">
                                 <span class="text-gray-400">Total Price</span>
-                                <span class="text-2xl font-serif text-gold" x-text="formatRupiah(totalPrice)"></span>
+                                <span class="text-2xl font-serif text-gold" x-text="formatRupiah(totalPrice())"></span>
                             </div>
                             <div class="text-right text-[10px] text-gray-500" x-text="selectedSchedule?.pricing_strategy + ' applied'"></div>
                         </div>
@@ -293,7 +498,7 @@
                     </div>
                     <div class="flex justify-between border-t border-white/10 pt-3 mt-1">
                         <span class="text-gray-400">Total Price</span>
-                        <span class="text-xl font-serif text-gold" x-text="formatRupiah(totalPrice)"></span>
+                        <span class="text-xl font-serif text-gold" x-text="formatRupiah(totalPrice())"></span>
                     </div>
                 </div>
 

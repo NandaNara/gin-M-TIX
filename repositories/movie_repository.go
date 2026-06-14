@@ -67,6 +67,11 @@ func (r *MovieRepository) Delete(id int) error {
 	if _, ok := r.db.Movies[id]; !ok {
 		return errors.New("movie not found")
 	}
+	for _, schedule := range r.db.Schedules {
+		if schedule.MovieID == id {
+			return errors.New("movie is used by a schedule")
+		}
+	}
 	delete(r.db.Movies, id)
 	return nil
 }

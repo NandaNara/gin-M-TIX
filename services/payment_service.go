@@ -21,13 +21,19 @@ func NewPaymentService(bookingRepo *repositories.BookingRepository) *PaymentServ
 	return &PaymentService{bookingRepo: bookingRepo}
 }
 
-func (s *PaymentService) Pay(request PaymentRequest) (models.Payment, models.Booking, error) {
+func (s *PaymentService) Pay(userID int, request PaymentRequest) (models.Payment, models.Booking, error) {
+	if s.bookingRepo.IsUserAdmin(userID) {
+		return models.Payment{}, models.Booking{}, errors.New("admin users cannot make payments")
+	}
 	booking, ok := s.bookingRepo.GetByID(request.BookingID)
-	if !ok {
+	if !ok || booking.UserID != userID {
 		return models.Payment{}, models.Booking{}, errors.New("booking not found")
 	}
 	if booking.Status == models.BookingPaid {
 		return models.Payment{}, booking, errors.New("booking already paid")
+	}
+	if booking.Status == models.BookingCanceled {
+		return models.Payment{}, booking, errors.New("booking is canceled")
 	}
 
 	status := models.PaymentSuccess

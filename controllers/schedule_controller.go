@@ -51,6 +51,36 @@ func (ctrl *ScheduleController) CreateSchedule(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{"data": ctrl.toResponse(createdSchedule)})
 }
 
+func (ctrl *ScheduleController) UpdateSchedule(c *gin.Context) {
+	id, ok := parseIDParam(c, "id")
+	if !ok {
+		return
+	}
+	var schedule models.Schedule
+	if err := c.ShouldBindJSON(&schedule); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	updated, err := ctrl.repo.Update(id, schedule)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"data": ctrl.toResponse(updated)})
+}
+
+func (ctrl *ScheduleController) DeleteSchedule(c *gin.Context) {
+	id, ok := parseIDParam(c, "id")
+	if !ok {
+		return
+	}
+	if err := ctrl.repo.Delete(id); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "schedule deleted"})
+}
+
 func (ctrl *ScheduleController) GetScheduleSeats(c *gin.Context) {
 	id, ok := parseIDParam(c, "id")
 	if !ok {
