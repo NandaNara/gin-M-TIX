@@ -23,6 +23,8 @@ func (ctrl *BookingController) CreateBooking(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+	user, _ := CurrentUser(c)
+	request.UserID = user.ID
 
 	booking, err := ctrl.facade.CreateBooking(request)
 	if err != nil {
@@ -39,7 +41,8 @@ func (ctrl *BookingController) GetBooking(c *gin.Context) {
 		return
 	}
 
-	booking, found := ctrl.facade.GetBooking(id)
+	user, _ := CurrentUser(c)
+	booking, found := ctrl.facade.GetBookingForUser(id, user.ID)
 	if !found {
 		c.JSON(http.StatusNotFound, gin.H{"error": "booking not found"})
 		return
@@ -49,12 +52,8 @@ func (ctrl *BookingController) GetBooking(c *gin.Context) {
 }
 
 func (ctrl *BookingController) GetUserBookings(c *gin.Context) {
-	id, ok := parseIDParam(c, "id")
-	if !ok {
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{"data": ctrl.facade.GetUserBookings(id)})
+	user, _ := CurrentUser(c)
+	c.JSON(http.StatusOK, gin.H{"data": ctrl.facade.GetUserBookings(user.ID)})
 }
 
 func (ctrl *BookingController) CancelBooking(c *gin.Context) {
@@ -63,7 +62,8 @@ func (ctrl *BookingController) CancelBooking(c *gin.Context) {
 		return
 	}
 
-	booking, err := ctrl.facade.CancelBooking(id)
+	user, _ := CurrentUser(c)
+	booking, err := ctrl.facade.CancelBookingForUser(id, user.ID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -79,7 +79,8 @@ func (ctrl *BookingController) Pay(c *gin.Context) {
 		return
 	}
 
-	payment, booking, err := ctrl.facade.Pay(request)
+	user, _ := CurrentUser(c)
+	payment, booking, err := ctrl.facade.Pay(user.ID, request)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error":   err.Error(),

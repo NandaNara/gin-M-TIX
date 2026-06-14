@@ -30,6 +30,7 @@ func (r *ScheduleRepository) GetAll() []models.Schedule {
 	return schedules
 }
 
+
 func (r *ScheduleRepository) GetByID(id int) (models.Schedule, bool) {
 	r.db.Mu.RLock()
 	defer r.db.Mu.RUnlock()
@@ -56,6 +57,42 @@ func (r *ScheduleRepository) Create(schedule models.Schedule) (models.Schedule, 
 	r.db.NextIDs["schedules"]++
 	r.db.Schedules[schedule.ID] = schedule
 	return r.enrichScheduleLocked(schedule), nil
+}
+
+func (r *ScheduleRepository) Update(id int, schedule models.Schedule) (models.Schedule, error) {
+	r.db.Mu.Lock()
+	defer r.db.Mu.Unlock()
+
+	if _, ok := r.db.Schedules[id]; !ok {
+		return models.Schedule{}, errors.New("schedule not found")
+	}
+	if _, ok := r.db.Movies[schedule.MovieID]; !ok {
+		return models.Schedule{}, errors.New("movie not found")
+	}
+	if _, ok := r.db.Studios[schedule.StudioID]; !ok {
+		return models.Schedule{}, errors.New("studio not found")
+	}
+	if r.hasActiveBookingsLocked(id) {
+		return models.Schedule{}, errors.New("schedule has active bookings")
+	}
+
+	schedule.ID = id
+	r.db.Schedules[id] = schedule
+	return r.enrichScheduleLocked(schedule), nil
+}
+
+func (r *ScheduleRepository) Delete(id int) error {
+	r.db.Mu.Lock()
+	defer r.db.Mu.Unlock()
+
+	if _, ok := r.db.Schedules[id]; !ok {
+		return errors.New("schedule not found")
+	}
+	if r.hasActiveBookingsLocked(id) {
+		return errors.New("schedule has active bookings")
+	}
+	delete(r.db.Schedules, id)
+	return nil
 }
 
 func (r *ScheduleRepository) GetSeatsByScheduleID(scheduleID int) ([]models.Seat, error) {
@@ -112,4 +149,13 @@ func (r *ScheduleRepository) enrichScheduleLocked(schedule models.Schedule) mode
 		schedule.Studio = &studio
 	}
 	return schedule
+}
+
+func (r *ScheduleRepository) hasActiveBookingsLocked(scheduleID int) bool {
+	for _, booking := range r.db.Bookings {
+		if booking.ScheduleID == scheduleID && booking.Status != models.BookingCanceled {
+			return true
+		}
+	}
+	return false
 }

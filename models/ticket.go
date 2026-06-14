@@ -5,9 +5,10 @@ import "time"
 type TicketType string
 
 const (
-	TicketRegular TicketType = "regular"
-	TicketStudent TicketType = "student"
-	TicketVIP     TicketType = "vip"
+	TicketRegular        TicketType = "regular"
+	TicketVIP            TicketType = "vip"
+	TicketRegularStudent TicketType = "regular_student"
+	TicketVIPStudent     TicketType = "vip_student"
 )
 
 type Ticket struct {

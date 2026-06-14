@@ -21,6 +21,6 @@ WORKDIR /app
 COPY --from=builder /app/mtix-app .
 COPY --from=builder /app/public ./public
 
-EXPOSE 8080
+EXPOSE 8999
 
 CMD ["./mtix-app"]

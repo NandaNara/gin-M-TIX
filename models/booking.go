@@ -15,7 +15,6 @@ type Booking struct {
 	UserID     int           `json:"user_id" binding:"required"`
 	ScheduleID int           `json:"schedule_id" binding:"required"`
 	SeatIDs    []int         `json:"seat_ids" binding:"required"`
-	TicketType TicketType    `json:"ticket_type"`
 	Tickets    []Ticket      `json:"tickets"`
 	TotalPrice float64       `json:"total_price"`
 	Status     BookingStatus `json:"status"`

@@ -10,10 +10,9 @@ import (
 )
 
 type CreateBookingRequest struct {
-	UserID     int               `json:"user_id" binding:"required"`
-	ScheduleID int               `json:"schedule_id" binding:"required"`
-	SeatIDs    []int             `json:"seat_ids" binding:"required"`
-	TicketType models.TicketType `json:"ticket_type"`
+	UserID     int   `json:"-"`
+	ScheduleID int   `json:"schedule_id" binding:"required"`
+	SeatIDs    []int `json:"seat_ids" binding:"required"`
 }
 
 type BookingService struct {
@@ -38,16 +37,20 @@ func (s *BookingService) CreateBooking(request CreateBookingRequest) (models.Boo
 	if request.UserID <= 0 {
 		return models.Booking{}, errors.New("user_id must be greater than zero")
 	}
+	if s.bookingRepo.IsUserAdmin(request.UserID) {
+		return models.Booking{}, errors.New("admin users cannot create bookings")
+	}
 	if len(request.SeatIDs) == 0 {
 		return models.Booking{}, errors.New("seat_ids cannot be empty")
-	}
-	if request.TicketType == "" {
-		request.TicketType = models.TicketRegular
 	}
 
 	schedule, ok := s.scheduleRepo.GetByID(request.ScheduleID)
 	if !ok {
 		return models.Booking{}, errors.New("schedule not found")
+	}
+
+	if !s.bookingRepo.IsBookedDayValid(schedule) {
+		return models.Booking{}, errors.New("booking must be made at least 3 days in advance and before the schedule start time")
 	}
 
 	availableSeats, err := s.scheduleRepo.GetSeatsByScheduleID(request.ScheduleID)
@@ -79,14 +82,12 @@ func (s *BookingService) CreateBooking(request CreateBookingRequest) (models.Boo
 	}
 
 	baseSeatPrice, _ := s.pricing.CalculateSeatPrice(schedule)
-	factory, err := ticketfactory.NewTicketFactory(request.TicketType)
-	if err != nil {
-		return models.Booking{}, err
-	}
+	isStudent := s.bookingRepo.IsUserStudent(request.UserID)
 
 	tickets := make([]models.Ticket, 0, len(selectedSeats))
 	totalPrice := 0.0
 	for _, seat := range selectedSeats {
+		factory := ticketfactory.NewTicketFactory(bool(seat.IsVIP), isStudent)
 		ticket := factory.CreateTicket(schedule.ID, seat, baseSeatPrice)
 		tickets = append(tickets, ticket)
 		totalPrice += ticket.Price
@@ -96,7 +97,6 @@ func (s *BookingService) CreateBooking(request CreateBookingRequest) (models.Boo
 		UserID:     request.UserID,
 		ScheduleID: request.ScheduleID,
 		SeatIDs:    request.SeatIDs,
-		TicketType: request.TicketType,
 		Tickets:    tickets,
 		TotalPrice: totalPrice,
 	}
@@ -104,14 +104,19 @@ func (s *BookingService) CreateBooking(request CreateBookingRequest) (models.Boo
 	return s.bookingRepo.Create(booking)
 }
 
-func (s *BookingService) GetBooking(id int) (models.Booking, bool) {
-	return s.bookingRepo.GetByID(id)
+func (s *BookingService) GetBookingForUser(id, userID int) (models.Booking, bool) {
+	booking, ok := s.bookingRepo.GetByID(id)
+	return booking, ok && booking.UserID == userID
 }
 
 func (s *BookingService) GetUserBookings(userID int) []models.Booking {
 	return s.bookingRepo.GetByUserID(userID)
 }
 
-func (s *BookingService) CancelBooking(id int) (models.Booking, error) {
+func (s *BookingService) CancelBookingForUser(id, userID int) (models.Booking, error) {
+	booking, ok := s.bookingRepo.GetByID(id)
+	if !ok || booking.UserID != userID {
+		return models.Booking{}, errors.New("booking not found")
+	}
 	return s.bookingRepo.Cancel(id)
 }

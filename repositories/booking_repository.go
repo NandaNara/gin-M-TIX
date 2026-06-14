@@ -17,6 +17,38 @@ func NewBookingRepository(db *config.Database) *BookingRepository {
 	return &BookingRepository{db: db}
 }
 
+func (r *BookingRepository) IsUserAdmin(id int) bool {
+	r.db.Mu.RLock()
+	defer r.db.Mu.RUnlock()
+
+	user, ok := r.db.Users[id]
+	if !ok {
+		return false
+	}
+	return user.IsAdmin == models.AdminTrue
+}
+
+func (r *BookingRepository) IsUserStudent(id int) bool {
+	r.db.Mu.RLock()
+	defer r.db.Mu.RUnlock()
+
+	user, ok := r.db.Users[id]
+	if !ok {
+		return false
+	}
+	return user.IsStudent == models.StudentTrue
+}
+
+func (r *BookingRepository) IsBookedDayValid(schedule models.Schedule) bool {
+	now := time.Now()
+
+	if now.After(schedule.StartTime) {
+		return false
+	}
+
+	return schedule.StartTime.Sub(now) >= 72*time.Hour
+}
+
 func (r *BookingRepository) Create(booking models.Booking) (models.Booking, error) {
 	r.db.Mu.Lock()
 	defer r.db.Mu.Unlock()
@@ -94,6 +126,9 @@ func (r *BookingRepository) MarkPaid(bookingID int) (models.Booking, error) {
 	}
 	if booking.Status == models.BookingPaid {
 		return booking, nil
+	}
+	if booking.Status == models.BookingCanceled {
+		return models.Booking{}, errors.New("cannot pay a canceled booking")
 	}
 
 	now := time.Now()
