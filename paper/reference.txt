@@ -1,0 +1,31 @@
+Software design patterns,
+provide time-tested templates for solving recurring architectural challenges in object-oriented software systems
+
+referenced 
+
+Software design patterns for data management features in web-based information systems - Jun 15, 2026
+
+
+Go is not a classical object-oriented language; it has no
+inheritance. However, interfaces and composition provide sufficient abstraction mechanisms to implement all classical GoF
+patterns
+
+referenced
+
+DesPat A Modeling Toolset for Designing and Implementing Software Systems using Design Patterns - Jun 15, 2026
+
+
+Design patterns are classified by the Gang of Four
+into three categories: Creational, Structural, and Behavioral.
+Factory Method falls under Creational, Facade under Structural, and Strategy under Behavioral. 
+
+referenced
+
+A mapping study of language features improving object-oriented design patterns - Jun 15, 2026
+
+
+The REST architectural style mandates stateless clientserver communication
+
+referenced
+
+Testing RESTful APIs A Survey - Jun 15, 2026
