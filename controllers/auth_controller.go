@@ -205,6 +205,10 @@ func (ctrl *AuthController) ResolveStudentApplication(c *gin.Context) {
 		c.JSON(http.StatusNotFound, gin.H{"error": "student application not found"})
 		return
 	}
+	if (approved.Approved == nil) {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "approval status is required"})
+		return
+	}
 	user, err := ctrl.repo.ResolveStudentApplication(userID, *approved.Approved)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
