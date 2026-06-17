@@ -27,7 +27,7 @@ type LoginRequest struct {
 }
 
 type StudentResolveRequest struct {
-	Approved bool `json:"approved" binding:"required"`
+	Approved *bool `json:"approved" binding:"required"`
 }
 
 type AuthController struct {
@@ -205,7 +205,7 @@ func (ctrl *AuthController) ResolveStudentApplication(c *gin.Context) {
 		c.JSON(http.StatusNotFound, gin.H{"error": "student application not found"})
 		return
 	}
-	user, err := ctrl.repo.ResolveStudentApplication(userID, approved.Approved)
+	user, err := ctrl.repo.ResolveStudentApplication(userID, *approved.Approved)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 		return
